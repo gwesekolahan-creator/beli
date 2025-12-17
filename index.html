@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Check Live Username Instagram</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/icofont/1.0.1/css/icofont.min.css" rel="stylesheet">
+  <style>
+    body { padding-top: 70px; }
+    .hidden { display: none; }
+    .header-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .user-number {
+      font-size: 1rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body class="bg-light">
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="#"><i class="icofont-instagram"></i> IG Live Checker</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+        aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNavDropdown">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link active" href="#" id="menuLogin">Login</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" id="menuChecker">Cek Live</a></li>
+        </ul>
+        <button class="btn btn-sm btn-outline-light" id="btnLogout" style="display:none;"><i class="icofont-logout"></i> Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container">
+
+    <!-- Step 1: Login -->
+    <div id="stepLogin">
+      <div class="header-container">
+        <h1><i class="icofont-check-circled"></i> Check Live Username Instagram</h1>
+        <div class="user-number">
+          <i class="icofont-users"></i> Number of user: <span id="userCount">Loading...</span>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-bold text-primary">Masukkan Cookie Instagram</label>
+        <textarea class="form-control" id="cookieInput" rows="3" placeholder="mid=xxx; ig_did=xxx; ..."></textarea>
+      </div>
+      <div class="text-center mb-4">
+        <button class="btn btn-primary px-5 py-2 fw-bold" id="btnLogin"><i class="icofont-login"></i> Login</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Cek Live -->
+    <div id="stepChecker" class="hidden">
+      <div class="mb-3">
+        <label class="form-label fw-bold text-success">Enter a list of usernames, one per line</label>
+        <textarea class="form-control" id="listId" rows="10"></textarea>
+      </div>
+
+      <div class="d-flex justify-content-center mb-4 flex-wrap gap-2">
+        <button class="btn btn-primary fw-bold" id="btnStart"><i class="icofont-ui-play"></i> Jalankan</button>
+        <span class="badge bg-success p-3">Live: <span id="liveCount">0</span></span>
+        <span class="badge bg-danger p-3">Dead: <span id="dieCount">0</span></span>
+        <span class="badge bg-warning text-dark p-3">Checked: <span id="totalCount">0</span></span>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <label class="form-label fw-bold text-success">List of Live accounts</label>
+          <textarea class="form-control" readonly id="listLive" rows="10"></textarea>
+          <button class="btn btn-secondary btn-sm mt-2" id="btnCopyLive"><b>Copy</b></button>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold text-danger">List of Dead accounts</label>
+          <textarea class="form-control" readonly id="listDie" rows="10"></textarea>
+          <button class="btn btn-secondary btn-sm mt-2" id="btnCopyDie"><b>Copy</b></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script -->
+  <script>
+    let userCookie = "";
+
+    // Cek apakah sudah ada cookie di localStorage
+    window.onload = function () {
+      const savedCookie = localStorage.getItem("ig_cookie");
+      if (savedCookie) {
+        userCookie = savedCookie;
+        showSection("checker");
+        document.getElementById("btnLogout").style.display = "inline-block";
+      } else {
+        showSection("login");
+      }
+      updateUserCount();
+    };
+
+    // Menu navigation
+    document.getElementById("menuLogin").addEventListener("click", (e) => {
+      e.preventDefault();
+      showSection("login");
+    });
+
+    document.getElementById("menuChecker").addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!userCookie) {
+        alert("Silakan login terlebih dahulu.");
+        return;
+      }
+      showSection("checker");
+    });
+
+    function showSection(section) {
+      document.getElementById("stepLogin").classList.add("hidden");
+      document.getElementById("stepChecker").classList.add("hidden");
+      document.getElementById("menuLogin").classList.remove("active");
+      document.getElementById("menuChecker").classList.remove("active");
+
+      if (section === "login") {
+        document.getElementById("stepLogin").classList.remove("hidden");
+        document.getElementById("menuLogin").classList.add("active");
+        document.getElementById("btnLogout").style.display = "none";
+      } else {
+        document.getElementById("stepChecker").classList.remove("hidden");
+        document.getElementById("menuChecker").classList.add("active");
+        document.getElementById("btnLogout").style.display = "inline-block";
+      }
+    }
+
+    // Login
+    document.getElementById("btnLogin").addEventListener("click", () => {
+      const input = document.getElementById("cookieInput").value.trim();
+      if (!input) return alert("Masukkan cookies terlebih dahulu!");
+      userCookie = input;
+      localStorage.setItem("ig_cookie", input); // Simpan ke localStorage
+      showSection("checker");
+      document.getElementById("btnLogout").style.display = "inline-block";
+    });
+
+    // Logout
+    document.getElementById("btnLogout").addEventListener("click", () => {
+      localStorage.removeItem("ig_cookie");
+      userCookie = "";
+      showSection("login");
+    });
+
+    // Jalankan pengecekan
+    document.getElementById("btnStart").addEventListener("click", async () => {
+      let usernames = document.getElementById("listId").value.trim().split("\n").map(u => u.trim()).filter(u => u !== "");
+      if (usernames.length === 0) return alert("Masukkan daftar username!");
+
+      if (!userCookie) return alert("Cookie tidak ditemukan! Silakan login ulang.");
+
+      let liveCount = 0, dieCount = 0, totalCount = 0;
+      let liveList = [], dieList = [];
+
+      for (let username of usernames) {
+        try {
+          let rawInput = `${username}|dummy|dummy`;
+          let response = await fetch(`/graph?username=${encodeURIComponent(rawInput)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cookie: userCookie })
+          });
+
+          let data = await response.json();
+          if (data.status === "live") {
+            liveList.push(username); liveCount++;
+          } else {
+            dieList.push(username); dieCount++;
+          }
+        } catch {
+          dieList.push(username); dieCount++;
+        }
+        totalCount++;
+        updateUI(liveCount, dieCount, totalCount, liveList, dieList);
+      }
+    });
+
+    function updateUI(live, dead, total, liveList, deadList) {
+      document.getElementById("liveCount").innerText = live;
+      document.getElementById("dieCount").innerText = dead;
+      document.getElementById("totalCount").innerText = total;
+      document.getElementById("listLive").value = liveList.join("\n");
+      document.getElementById("listDie").value = deadList.join("\n");
+    }
+
+    function copyToClipboard(id) {
+      let textarea = document.getElementById(id);
+      textarea.select();
+      document.execCommand("copy");
+      alert("Copied to clipboard!");
+    }
+
+    document.getElementById("btnCopyLive").addEventListener("click", () => copyToClipboard("listLive"));
+    document.getElementById("btnCopyDie").addEventListener("click", () => copyToClipboard("listDie"));
+
+    async function updateUserCount() {
+      try {
+        let response = await fetch("/user_count");
+        let data = await response.json();
+        document.getElementById("userCount").innerText = data.user_count;
+      } catch (error) {
+        console.error("Gagal mengambil jumlah pengguna", error);
+      }
+    }
+  </script>
+
+  <!-- Bootstrap Bundle JS (wajib untuk navbar toggle) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
